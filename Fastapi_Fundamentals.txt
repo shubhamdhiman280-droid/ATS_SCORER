@@ -1,0 +1,11 @@
+Used to build APIS 
+For ATS system we need so that's why we are using fastapi, work well with aiml lib 
+
+-We  get swagger AI where we can see the APIs properly
+-Use pydantic so proper data formatting validation
+-Async support: Handle many requests 
+
+-We are not using flask its for beginner level and code len is big and manual validation, slower then fastapi
+
+
+
