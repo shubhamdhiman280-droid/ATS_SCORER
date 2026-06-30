@@ -90,3 +90,24 @@ def analyze_full_resume(
     )
 
     issues_summary = generate_issues_summary(detailed_feedback)
+    
+    return {
+        "ats_score": scores['overall_score'],
+        "component_scores": {
+            "formatting": scores['formatting_score'],
+            "keywords": scores['keywords_score'],
+            "content": scores['content_score'],
+            "skill_validation": scores['skill_validation_score'],
+            "ats_compatibility": scores['ats_compatibility_score'],
+        },
+        "issues_summary": issues_summary,
+        "detailed_feedback": detailed_feedback,
+        # SAFE RETURN: Default to an empty dictionary if jd_comparison_result is None
+        "jd_comparison": jd_comparison_result or {},
+        "skills": skills,
+        "fit_analysis": {
+            "requirements_met": [], 
+            "requirements_lacks": [], 
+            "strategic_emphasis": "Demo mode active."
+        },
+    }
