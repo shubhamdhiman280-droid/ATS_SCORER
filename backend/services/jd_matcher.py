@@ -1,17 +1,23 @@
 from typing import List, Dict, Optional
 import numpy as np
 import spacy
-from sentence_transformers import SentenceTransformer
+# REMOVED: from sentence_transformers import SentenceTransformer
 from backend.utils.matching import fuzzy_match_keywords, normalize_skill
 from rapidfuzz import fuzz
 
 def calculate_semantic_similarity(
-    resume_text: str, jd_text: str, embedder: Optional[SentenceTransformer] = None
+    resume_text: str, jd_text: str, embedder: Optional[object] = None
 ) -> float:
-    # If no embedder is provided, we cannot perform semantic analysis safely
+    """
+    Calculates semantic similarity. 
+    Returns a neutral 0.5 if embedder is None (Memory-Safe mode).
+    """
+    # If no embedder is provided, we skip the heavy encoding process
     if embedder is None:
-        return 0.5  # Return a neutral middle-ground score instead of loading model
+        return 0.5  # Neutral score
         
+    # Only if embedder exists, proceed with heavy computation
+    # Note: Ensure that if embedder IS provided, it has an .encode() method
     resume_emb = embedder.encode(resume_text[:5000], convert_to_tensor=False)
     jd_emb     = embedder.encode(jd_text[:5000], convert_to_tensor=False)
 
@@ -30,9 +36,18 @@ def identify_missing_keywords(resume_keywords: List[str], jd_keywords: List[str]
 
 def analyze_skills_gap(resume_skills: List[str], jd_text: str, nlp: spacy.Language) -> List[str]:
     if not nlp: return [] # Safety check
+    
     doc = nlp(jd_text[:5000])
     jd_skills = set()
+    
+    # Extract entities as skills
     for ent in doc.ents:
         if ent.label_ in ['PRODUCT', 'ORG', 'LANGUAGE']:
             jd_skills.add(ent.text.lower())
-    for chunk in doc
+            
+    # Continue your logic for noun_chunks or other extraction here
+    for chunk in doc.noun_chunks:
+        jd_skills.add(chunk.text.lower())
+        
+    # Logic to compare extracted jd_skills with resume_skills goes here...
+    return list(jd_skills - set(resume_skills))
