@@ -89,4 +89,4 @@ def analyze_full_resume(
         contact_info=contact_info,
     )
 
-    issues_summary = generate_issues_summary(detailed
+    issues_summary = generate_issues_summary(detailed)
