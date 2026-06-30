@@ -10,12 +10,6 @@ logger = logging.getLogger('ats_resume_scorer')
 
 router = APIRouter(prefix='/api/v1', tags=['Analysis'])
 
-# clean emojis
-def _clean(text: str) -> str:
-    for prefix in ('✅', '🌟', '❌', '⚠️', '📝', '🔴', '🟡', '🟢', '🟠', '👍'):
-        text = text.lstrip(prefix)
-    return text.strip()
-
 @router.post('/analyze-resume', response_model=AnalysisResponse)
 async def analyze_resume(
     request: Request,
@@ -48,28 +42,25 @@ async def analyze_resume(
             job_description=job_description
         )
         
-        # Fallback for JD comparison if embedder result is missing
-        if not result.get('jd_comparison'):
-            result['jd_comparison'] = {
-                "match_percentage": 75.0,
-                "semantic_similarity": 0.8,
-                "matched_keywords": ["Skill-Analysis-Placeholder"],
-                "missing_keywords": ["Cloud-Optimization", "Deployment"],
-                "skills_gap": ["Memory-Management"]
-            }
+        # Ensure result is a dictionary and contains required structure
+        if not isinstance(result, dict):
+            raise ValueError("Analyzer did not return a dictionary")
 
     except Exception as exc:
         logger.error(f'Full analysis pipeline failed: {exc}')
         raise HTTPException(status_code=500, detail=f'Analysis pipeline failed: {exc}')
 
+    # Safely handle JD Comparison data
+    jd_comp_raw = result.get('jd_comparison') or {}
     jd_comparison_result = JDComparison(
-        match_percentage=round(float(result['jd_comparison'].get('match_percentage', 0.0)), 1),
-        semantic_similarity=round(float(result['jd_comparison'].get('semantic_similarity', 0.0)), 3),
-        matched_keywords=result['jd_comparison'].get('matched_keywords', [])[:20],
-        missing_keywords=result['jd_comparison'].get('missing_keywords', [])[:15],
-        skills_gap=result['jd_comparison'].get('skills_gap', [])[:10],
+        match_percentage=round(float(jd_comp_raw.get('match_percentage', 0.0)), 1),
+        semantic_similarity=round(float(jd_comp_raw.get('semantic_similarity', 0.0)), 3),
+        matched_keywords=jd_comp_raw.get('matched_keywords', [])[:20],
+        missing_keywords=jd_comp_raw.get('missing_keywords', [])[:15],
+        skills_gap=jd_comp_raw.get('skills_gap', [])[:10],
     )
 
+    # Safely handle Skill Validation data
     svd_raw = result.get('skill_validation_details') or {}
     skill_val_details = SkillValidationDetails(
         validated=svd_raw.get('validated', []),
@@ -79,13 +70,13 @@ async def analyze_resume(
         validation_pct=svd_raw.get('validation_pct', 0.0),
     )
 
-    # Standardized key access for score
-    final_score = result.get('ats_score') or result.get('ATS_score') or 0.0
+    # Final response construction with unified lowercase keys
+    final_score = float(result.get('ats_score') or result.get('ATS_score') or 0.0)
 
     response = AnalysisResponse(
         ats_score=final_score,
-        component_scores=ComponentScores(**result['component_scores']),
-        issues_summary=result['issues_summary'],
+        component_scores=ComponentScores(**result.get('component_scores', {})),
+        issues_summary=result.get('issues_summary', ''),
         detailed_feedback=result.get('detailed_feedback', []),
         jd_match_analysis=jd_comparison_result,
         skill_validation_details=skill_val_details,
@@ -103,6 +94,7 @@ async def analyze_resume(
         mock_interview_qa=result.get('mock_interview_qa', [])
     )
 
+    # Save to DB if user is logged in
     try:
         from backend.database.supabase_db import save_analysis
         if user_id:
@@ -111,5 +103,3 @@ async def analyze_resume(
         logger.warning(f'History save failed: {exc}')
 
     return response
-
-# ... (Keep existing helper routes: health_check, get_history, delete_history_entry, generate_pdf, generate_history_pdf)
