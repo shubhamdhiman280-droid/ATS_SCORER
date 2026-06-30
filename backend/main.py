@@ -8,8 +8,7 @@ from backend.core.config import (
     APP_TITLE, 
     APP_VERSION, 
     SPACY_MODEL_PRIMARY, 
-    SPACY_MODEL_SECONDARY,
-    CUSTOM_MODEL_PATH
+    SPACY_MODEL_SECONDARY
 )
 
 logger = logging.getLogger('ats_resume_scorer')
