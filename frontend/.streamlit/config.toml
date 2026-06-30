@@ -17,3 +17,7 @@ gatherUsageStats = false
 [client]
 showSidebarNavigation = true
 toolbarMode = "minimal"
+
+[server]
+# Disable file watcher to prevent inotify limit errors
+fileWatcherType = "none"
