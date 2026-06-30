@@ -1,22 +1,18 @@
-#Go on supabase dashboard and setup the projext details
-#Password for the atsScorerSystem: 75bI8vNUh8qHgfAv
-#Supabase has database(PostgreSQL), authentication(auth), storage(buckets)
-#Low level sequrities
-
+import streamlit as st
 import logging
-import httpx #supports asyn which request dont supports, server block na ho due to multiple requests
+import httpx 
 import json 
 from datetime import datetime, timezone
 from typing import List, Optional, Dict
 
 logger = logging.getLogger('ats_resume_scorer')
 
+# FIX: Stop importing from backend.core.config
+# FIX: Use st.secrets to read from Streamlit Cloud Advanced Settings
 SUPABASE_URL = st.secrets["SUPABASE_URL"]
 SUPABASE_KEY = st.secrets["SUPABASE_ANON_KEY"]
 
 def _get_headers():
-    if not SUPABASE_URL or not SUPABASE_KEY:
-        return None
     return {
         "apikey": SUPABASE_KEY,
         "Authorization": f"Bearer {SUPABASE_KEY}",
@@ -24,6 +20,7 @@ def _get_headers():
         "Prefer": "return=representation"
     }
 
+# ... rest of your code remains the same ...
 async def save_analysis(user_id: str, filename: str, analysis_result: Dict) -> Optional[str]:
     headers = _get_headers()
     if not headers:
