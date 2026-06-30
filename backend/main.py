@@ -42,12 +42,6 @@ def get_nlp_model():
             app.state.nlp = spacy.load(SPACY_MODEL_SECONDARY)
     return app.state.nlp
 
-def get_embedder():
-    from sentence_transformers import SentenceTransformer
-    if not hasattr(app.state, "embedder"):
-        # Load the custom model only when the first request hits
-        app.state.embedder = SentenceTransformer(CUSTOM_MODEL_PATH, device="cpu")
-    return app.state.embedder
 
 # --- ROUTES ---
 app.include_router(router)
