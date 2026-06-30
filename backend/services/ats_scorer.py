@@ -25,6 +25,32 @@ def _skill_matches(skill: str, text: str, embedder: Optional[object], threshold:
     # Fallback when model is disabled
     return False, 0.0
 
+def calculate_overall_score(text, parsed_resume, skills, keywords, action_verbs, skill_validation_results, grammar_results, location_results, jd_keywords, experience_months) -> Dict:
+    # Example logic: Summing up components to get a score out of 100
+    formatting_score = 20  # You can replace this with actual logic
+    keywords_score = 25
+    content_score = 25
+    skill_validation_score = skill_validation_results.get('validation_score', 0.0)
+    ats_compatibility_score = 15
+
+    overall_score = (
+        formatting_score + 
+        keywords_score + 
+        content_score + 
+        skill_validation_score + 
+        ats_compatibility_score
+    )
+
+    return {
+        "overall_score": float(overall_score),
+        "formatting_score": float(formatting_score),
+        "keywords_score": float(keywords_score),
+        "content_score": float(content_score),
+        "skill_validation_score": float(skill_validation_score),
+        "ats_compatibility_score": float(ats_compatibility_score)
+    }
+
+
 def validate_skills_with_projects(
     skills: List[str],
     projects: List[Dict],
