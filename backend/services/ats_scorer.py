@@ -1,29 +1,35 @@
 import re
 import spacy
-import numpy as np
+# Removed: from sentence_transformers import SentenceTransformer 
 from typing import Dict, List, Optional, Tuple
-from sentence_transformers import SentenceTransformer
 from backend.utils.file_utils import log_warning
 
-# ... (keep your existing ZIP_CODE_PATTERN and other constants here) ...
+# ... (Keep your existing ZIP_CODE_PATTERN and other constants here) ...
 
-def _skill_matches(skill: str, text: str, embedder: Optional[SentenceTransformer], threshold: float) -> Tuple[bool, float]:
-    # fast, o(n) directly check if skill is a substring
+def _skill_matches(skill: str, text: str, embedder: Optional[object], threshold: float) -> Tuple[bool, float]:
+    """
+    Checks if a skill exists in the text. 
+    Semantic check is bypassed if embedder is None.
+    """
+    # 1. Fast, O(n) exact match check
     if skill.lower() in text.lower():
         return True, 1.0
     
-    # Only run semantic check if embedder is provided
+    # 2. Semantic check only if embedder is provided and not None
     if embedder is not None:
+        # Note: In your actual code, ensure _calculate_semantic_similarity 
+        # is safe to call or handle the missing dependency.
         sim = _calculate_semantic_similarity(skill, text, embedder)
         return sim >= threshold, sim
     
+    # Fallback when model is disabled
     return False, 0.0
 
 def validate_skills_with_projects(
     skills: List[str],
     projects: List[Dict],
     experience_entries: List[Dict],
-    embedder: Optional[SentenceTransformer] = None, # Allow None
+    embedder: Optional[object] = None, # Type changed to object to avoid dependency errors
     threshold: float = 0.6,
 ) -> Dict:
     
@@ -36,18 +42,8 @@ def validate_skills_with_projects(
             'validation_score': 0.0,
         }
 
-    # If no embedder, we can't perform semantic validation. 
-    # Return all as unvalidated or use a basic keyword fallback.
-    if embedder is None:
-        return {
-            'validated_skills': [],
-            'unvalidated_skills': skills, # Default to unvalidated when model is disabled
-            'validation_percentage': 0.0,
-            'skill_project_mapping': {s: [] for s in skills},
-            'validation_score': 0.0,
-        }
-
-    # ... (Keep the rest of your existing logic for when embedder IS present) ...
+    # Logic when no embedder is present:
+    # Use standard keyword matching to fill validated/unvalidated lists
     experience_text = ' '.join(
         f"{e.get('job_title', '')} {e.get('company', '')} {e.get('description', '')}"
         for e in experience_entries
@@ -62,13 +58,16 @@ def validate_skills_with_projects(
         matching_projects = []
         max_similarity = 0.0
 
+        # Check in projects
         for project in projects:
             project_text = f"{project.get('title', '')} {project.get('description', '')}"
+            # Only use keyword match (embedder=None forces this)
             matched, sim = _skill_matches(skill, project_text, embedder, threshold)
             max_similarity = max(max_similarity, sim)
             if matched:
                 matching_projects.append(project.get('title', 'Untitled Project'))
 
+        # Check in experience
         if experience_text:
             matched, sim = _skill_matches(skill, experience_text, embedder, threshold)
             max_similarity = max(max_similarity, sim)
@@ -82,6 +81,7 @@ def validate_skills_with_projects(
             unvalidated_skills.append(skill)
             skill_project_mapping[skill] = []
 
+    # Calculate score based on keyword matches
     validation_percentage = len(validated_skills) / len(skills)
     validation_score = validation_percentage * 15.0
 
@@ -92,5 +92,3 @@ def validate_skills_with_projects(
         'skill_project_mapping': skill_project_mapping,
         'validation_score': validation_score,
     }
-
-# ... (keep the rest of your score calculation functions below this) ...
