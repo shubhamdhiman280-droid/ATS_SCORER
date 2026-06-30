@@ -11,7 +11,8 @@ from typing import List, Optional, Dict
 
 logger = logging.getLogger('ats_resume_scorer')
 
-from backend.core.config import SUPABASE_URL, SUPABASE_KEY
+SUPABASE_URL = st.secrets["SUPABASE_URL"]
+SUPABASE_KEY = st.secrets["SUPABASE_ANON_KEY"]
 
 def _get_headers():
     if not SUPABASE_URL or not SUPABASE_KEY:
