@@ -10,6 +10,8 @@ maxUploadSize = 10
 enableXsrfProtection = false
 enableCORS = false
 headless = true
+fileWatcherType = "none"
+
 
 [browser]
 gatherUsageStats = false
@@ -18,6 +20,4 @@ gatherUsageStats = false
 showSidebarNavigation = true
 toolbarMode = "minimal"
 
-[server]
 # Disable file watcher to prevent inotify limit errors
-fileWatcherType = "none"
