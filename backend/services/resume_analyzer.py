@@ -11,7 +11,7 @@ from backend.services.ats_scorer import calculate_overall_score, validate_skills
 def analyze_full_resume(
     resume_text: str,
     nlp: spacy.Language,
-    embedder: Optional[object] = None, # Changed to object for safety
+    embedder: Optional[object] = None, 
     job_description: Optional[str] = None,
 ) -> Dict:
     logger = logging.getLogger('ats_resume_scorer')
@@ -36,7 +36,6 @@ def analyze_full_resume(
         'portfolio': None,
     }
 
-    # SAFE CALL: The function now handles embedder=None gracefully
     skill_validation = validate_skills_with_projects(
         skills=skills,
         projects=projects,
@@ -54,7 +53,6 @@ def analyze_full_resume(
             parsed_jd.get('preferred_skills', [])
         ))
         
-        # SAFE CALL: Only compare if embedder exists
         if embedder:
             jd_comparison_result = compare_resume_with_jd(
                 resume_text=resume_text,
@@ -91,20 +89,4 @@ def analyze_full_resume(
         contact_info=contact_info,
     )
 
-    issues_summary = generate_issues_summary(detailed_feedback)
-    
-    return {
-        "ATS_score": scores['overall_score'],
-        "component_scores": {
-            "formatting": scores['formatting_score'],
-            "keywords": scores['keywords_score'],
-            "content": scores['content_score'],
-            "skill_validation": scores['skill_validation_score'],
-            "ats_compatibility": scores['ats_compatibility_score'],
-        },
-        "issues_summary": issues_summary,
-        "detailed_feedback": detailed_feedback,
-        "jd_comparison": jd_comparison_result,
-        "skills": skills,
-        "fit_analysis": {"requirements_met": [], "requirements_lacks": [], "strategic_emphasis": "Demo mode active (Embedder disabled)."},
-    }
+    issues_summary = generate_issues_summary(detailed
