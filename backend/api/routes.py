@@ -82,7 +82,7 @@ async def analyze_resume(
     )
 
     response = AnalysisResponse(
-        ATS_score=result['ats_score'],
+        ATS_score=result['ATS_score'],
         component_scores=ComponentScores(**result['component_scores']),
         issues_summary=result['issues_summary'],
         detailed_feedback=result.get('detailed_feedback', []),
