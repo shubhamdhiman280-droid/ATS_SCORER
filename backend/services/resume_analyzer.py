@@ -1,6 +1,6 @@
 import logging
 import spacy
-from sentence_transformers import SentenceTransformer
+# REMOVED: from sentence_transformers import SentenceTransformer
 from typing import Dict, List, Optional
 from backend.models.schemas import IssueDetail
 from backend.services.groq_parser import parse_resume, parse_job_description
@@ -11,7 +11,7 @@ from backend.services.ats_scorer import calculate_overall_score, validate_skills
 def analyze_full_resume(
     resume_text: str,
     nlp: spacy.Language,
-    embedder: Optional[SentenceTransformer],
+    embedder: Optional[object] = None, # Changed to object for safety
     job_description: Optional[str] = None,
 ) -> Dict:
     logger = logging.getLogger('ats_resume_scorer')
@@ -36,7 +36,7 @@ def analyze_full_resume(
         'portfolio': None,
     }
 
-    # SAFE CALL: Only use embedder if it exists
+    # SAFE CALL: The function now handles embedder=None gracefully
     skill_validation = validate_skills_with_projects(
         skills=skills,
         projects=projects,
@@ -53,6 +53,7 @@ def analyze_full_resume(
             parsed_jd.get('required_skills', []) +
             parsed_jd.get('preferred_skills', [])
         ))
+        
         # SAFE CALL: Only compare if embedder exists
         if embedder:
             jd_comparison_result = compare_resume_with_jd(
@@ -92,7 +93,6 @@ def analyze_full_resume(
 
     issues_summary = generate_issues_summary(detailed_feedback)
     
-    # ... (rest of your logic remains the same, ensure dictionary access is safe)
     return {
         "ATS_score": scores['overall_score'],
         "component_scores": {
@@ -106,6 +106,5 @@ def analyze_full_resume(
         "detailed_feedback": detailed_feedback,
         "jd_comparison": jd_comparison_result,
         "skills": skills,
-        "fit_analysis": {"requirements_met": [], "requirements_lacks": [], "strategic_emphasis": "Demo mode active."},
-        # ... rest of your return dictionary
+        "fit_analysis": {"requirements_met": [], "requirements_lacks": [], "strategic_emphasis": "Demo mode active (Embedder disabled)."},
     }
