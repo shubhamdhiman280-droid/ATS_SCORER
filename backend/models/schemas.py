@@ -35,7 +35,7 @@ class IssueDetail(BaseModel):
 
 class AnalysisResponse(BaseModel):
     # Core ATS Metrics
-    ATS_score: float
+    ats_score: float
     component_scores: ComponentScores
     issues_summary: List[str]
     detailed_feedback: List[IssueDetail]
