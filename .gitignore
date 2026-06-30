@@ -1,0 +1,15 @@
+# Ignore python virtual environments
+agent_env/
+env/
+venv/
+__pycache__/
+*.pyc
+
+# IMPORTANT: Ignore the entire machine learning models folder (prevents GitHub 100MB limit crashes)
+backend/saved_models/
+
+# Ignore local datasets, pickled embeddings, and environment configurations
+data/
+*.pkl
+*.csv
+.env

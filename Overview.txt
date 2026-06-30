@@ -1,0 +1,9 @@
+#RECAP TILL THIS FILE:-->USER UPLOAD--->VALIDATE--->PARSE---->DATA(RAW, UNSTRUCTURED)----->GROQ LLM--->STRUCTURE(JSON)---->
+TRAIN,FINETUNE(BERT, ON DATASET)---->JD MATCH---->ATS SCORE MATCHING ALL THINGS THAT IS IN RESUME AND ASSIGN SCORE
+---------->recommendation engine give feedbacks which issue to fix first and last----------->recommend and rank issues to fix(critical,high,medium,low)(if all errors shown together user might get suprized)
+----------->report generator.py(we will create some predefined templates stored in templates): action_items, jd, action, summary------->Now we have to export pdf(pdf_export.py)
+----->Now in API route.py file we will made as an main file connecting all files to HTTP endpoints-->1st endpont: analyze resume(parse func--->raw text)---->2:analyze full resume(score,validation,grammer)---->3:analysis response(return frontend to json)---->4:gen pdf(analyses issues make list and help feedback engine--->recommendation engine)---->5:generate HTML reports(Rendering jinja temeplates)---->pdf(Functionality to export pdf)--->routes(coordinated different api points)
+--->RESUME ANALYZER FILE (AS ORCHESTRATOR)
+
+
+config->main.py->schemas->file_utils->supabase_db->resume_parser->groq_parser->jd_matcher->matching->ats_scorer->feedback_engine->recommendation_engine->report_generation->pdf_export->routes->resume_analyzer
