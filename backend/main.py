@@ -1,5 +1,5 @@
 import logging
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from backend.api.routes import router
 from backend.core.config import (
@@ -30,24 +30,34 @@ app.add_middleware(
 )
 
 # --- LAZY LOADERS ---
-# These functions ensure models are ONLY loaded into RAM when requested.
+@app.on_event("startup")
+async def startup_event():
+    # Initialize app.state with None for safety
+    app.state.nlp = None
+    app.state.embedder = None
+    logger.info("Application starting: Models set to None for lazy loading.")
+
 def get_nlp_model():
     import spacy
-    # Check if already loaded in app state
-    if not hasattr(app.state, "nlp"):
+    if app.state.nlp is None:
+        logger.info("Lazy loading Spacy model...")
         try:
             app.state.nlp = spacy.load(SPACY_MODEL_PRIMARY)
         except OSError:
             app.state.nlp = spacy.load(SPACY_MODEL_SECONDARY)
     return app.state.nlp
 
+# Middleware to ensure models are ready if not present
+@app.middleware("http")
+async def ensure_models_loaded(request: Request, call_next):
+    # Only lazy-load NLP, keep embedder as None to save RAM
+    get_nlp_model()
+    response = await call_next(request)
+    return response
 
 # --- ROUTES ---
 app.include_router(router)
 
 @app.get('/')
 async def root():
-    return {'status': 'API is running, models will load on demand.'}
-
-# IMPORTANT: Update your routes.py to call get_nlp_model() 
-# and get_embedder() inside the endpoints, not globally!
+    return {'status': 'API is running, Spacy loaded, Embedder disabled for memory constraints.'}
